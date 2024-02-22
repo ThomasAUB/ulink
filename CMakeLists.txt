@@ -16,7 +16,7 @@ endif()
 
 add_test(NAME ullTests COMMAND tests/tests.cpp)
 
-
+add_subdirectory(include)
 
 # Add main.cpp file of the project root directory as a source file
 # set(SOURCE_FILES main.cpp)
@@ -24,4 +24,4 @@ add_test(NAME ullTests COMMAND tests/tests.cpp)
 
 
 # Add executable target with source files listed in SOURCE_FILES variable
-# add_executable(project ${SOURCE_FILES})
+add_executable(ull ${SOURCE_FILES})
