@@ -43,6 +43,8 @@ namespace ull {
 
         List();
 
+        List(const List<node_t>& other) = delete;
+
         iterator begin();
         iterator end();
 
@@ -174,30 +176,33 @@ namespace ull {
 
         if (pos == begin()) {
             push_front(node);
-            return;
         }
         else if (pos == end()) {
             push_back(node);
-            return;
         }
+        else {
+            auto* it = mStartNode.next;
+            auto* e = &mEndNode;
+            auto* p = &(*pos);
 
-        auto* it = mStartNode.next;
-        auto* e = &mEndNode;
-        auto* p = &(*pos);
+            while (it != e && it != p) {
+                it = it->next;
+            }
 
-        while (it != e && it != p) {
-            it = it->next;
+            if (it == p) {
+                insertBefore(*it, node);
+            }
         }
-
-        if (it == p) {
-            insertBefore(*it, node);
-        }
-
     }
 
     template<typename node_t>
     void List<node_t>::erase(iterator pos) {
-        (*pos).remove();
+        if (pos == end()) { // not ideal...
+            pop_back();
+        }
+        else {
+            (*pos).remove();
+        }
     }
 
     template<typename node_t>
