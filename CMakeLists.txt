@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD 17)              # Enable c++17 standard
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
+    add_executable(${PROJECT_NAME} tests/tests.cpp)
+    add_test(
+        NAME ullTests
+        COMMAND $<TARGET_FILE:tests/tests.cpp>
+    )
 endif()
 
 
@@ -14,9 +19,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
 endif()
 
 
-add_test(NAME ullTests COMMAND tests/tests.cpp)
-
-add_subdirectory(include)
+# add_test(NAME ullTests COMMAND tests.cpp)
 
 # Add main.cpp file of the project root directory as a source file
 # set(SOURCE_FILES main.cpp)
@@ -24,4 +27,4 @@ add_subdirectory(include)
 
 
 # Add executable target with source files listed in SOURCE_FILES variable
-add_executable(ull ${SOURCE_FILES})
+# add_executable(ull ${SOURCE_FILES})
