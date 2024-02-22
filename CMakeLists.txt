@@ -14,7 +14,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
 endif()
 
 
-add_test(NAME ullTests COMMAND tests/test.cpp)
+add_test(NAME ullTests COMMAND tests/tests.cpp)
 
 
 
