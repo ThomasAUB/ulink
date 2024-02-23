@@ -273,7 +273,7 @@ namespace ull {
 
         ~Node() { remove(); }
 
-    private:
+    protected:
 
         template<typename node_t>
         friend class List;
