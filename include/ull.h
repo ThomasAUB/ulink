@@ -40,8 +40,12 @@ namespace ull {
         using iterator = Iterator;
         using const_iterator = ConstIterator;
         using value_type = node_t;
+        using size_type = std::size_t;
+        using reference = value_type&;
 
         List();
+
+        List(const List<node_t>& other) = delete;
 
         iterator begin();
         iterator end();
@@ -52,23 +56,23 @@ namespace ull {
         value_type& front();
         value_type& back();
 
-        std::size_t size() const;
+        size_type size() const;
         bool empty() const;
         void clear();
 
-        void push_front(value_type& node);
-        void push_back(value_type& node);
+        void push_front(reference node);
+        void push_back(reference node);
 
         void pop_front();
         void pop_back();
 
-        void insert(const_iterator pos, value_type& node);
+        void insert(const_iterator pos, reference node);
         void erase(iterator pos);
 
     private:
 
-        void insertAfter(Node<value_type>& pos, value_type& node);
-        void insertBefore(Node<value_type>& pos, value_type& node);
+        void insertAfter(Node<value_type>& pos, reference node);
+        void insertBefore(Node<value_type>& pos, reference node);
 
         Node<value_type> mStartNode;
         Node<value_type> mEndNode;
@@ -118,8 +122,8 @@ namespace ull {
     }
 
     template<typename node_t>
-    std::size_t List<node_t>::size() const {
-        std::size_t outSize = 0;
+    typename List<node_t>::size_type List<node_t>::size() const {
+        size_type outSize = 0;
         auto* n = mStartNode.next;
         while (n != &mEndNode) {
             outSize++;
@@ -144,12 +148,12 @@ namespace ull {
     }
 
     template<typename node_t>
-    void List<node_t>::push_front(node_t& node) {
+    void List<node_t>::push_front(reference node) {
         insertAfter(mStartNode, node);
     }
 
     template<typename node_t>
-    void List<node_t>::push_back(node_t& node) {
+    void List<node_t>::push_back(reference node) {
         insertBefore(mEndNode, node);
     }
 
@@ -170,38 +174,41 @@ namespace ull {
     }
 
     template<typename node_t>
-    void List<node_t>::insert(const_iterator pos, node_t& node) {
+    void List<node_t>::insert(const_iterator pos, reference node) {
 
         if (pos == begin()) {
             push_front(node);
-            return;
         }
         else if (pos == end()) {
             push_back(node);
-            return;
         }
+        else {
+            auto* it = mStartNode.next;
+            auto* e = &mEndNode;
+            auto* p = &(*pos);
 
-        auto* it = mStartNode.next;
-        auto* e = &mEndNode;
-        auto* p = &(*pos);
+            while (it != e && it != p) {
+                it = it->next;
+            }
 
-        while (it != e && it != p) {
-            it = it->next;
+            if (it == p) {
+                insertBefore(*it, node);
+            }
         }
-
-        if (it == p) {
-            insertBefore(*it, node);
-        }
-
     }
 
     template<typename node_t>
     void List<node_t>::erase(iterator pos) {
-        (*pos).remove();
+        if (pos == end()) { // not ideal...
+            pop_back();
+        }
+        else {
+            (*pos).remove();
+        }
     }
 
     template<typename node_t>
-    void List<node_t>::insertAfter(Node<node_t>& pos, node_t& node) {
+    void List<node_t>::insertAfter(Node<node_t>& pos, reference node) {
         node.remove();
         node.prev = static_cast<node_t*>(&pos);
         // pos can not be the ending node
@@ -212,7 +219,7 @@ namespace ull {
     }
 
     template<typename node_t>
-    void List<node_t>::insertBefore(Node<node_t>& pos, node_t& node) {
+    void List<node_t>::insertBefore(Node<node_t>& pos, reference node) {
         node.remove();
         node.next = static_cast<node_t*>(&pos);
         // pos can not be the starting node
