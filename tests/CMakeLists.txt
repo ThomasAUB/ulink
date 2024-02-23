@@ -1,14 +1,9 @@
-cmake_minimum_required(VERSION 3.13)
-project(uLLTests VERSION 0.1.0)
+set(ULL_UNIT_TESTS ull_tests)
 
 include(CTest)
-enable_testing()
 
 file(GLOB TARGET_SRC "./tests.cpp" )
 
-add_executable(tests ${TARGET_SRC})
+add_executable(${ULL_UNIT_TESTS} ${TARGET_SRC})
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
+add_test(${ULL_UNIT_TESTS} ${ULL_UNIT_TESTS})

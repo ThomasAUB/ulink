@@ -3,7 +3,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
-#include "../include/ull.h"
+#include "ull.h"
 
 
 TEST_CASE("basic ull tests") {
@@ -77,7 +77,7 @@ TEST_CASE("basic ull tests") {
 
     auto incFront = [&list] (ull::List<Element>& ll) {
         ll.front().value++;
-    };
+        };
 
     CHECK(e4.value == values[0]);
 
