@@ -99,6 +99,8 @@ namespace ull {
         void insert(const_iterator pos, reference node);
         void erase(iterator pos);
 
+        ~List() { clear(); }
+
     private:
 
         void insertAfter(Node<value_type>& pos, reference node);
