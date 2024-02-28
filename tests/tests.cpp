@@ -3,14 +3,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
-#include "ull.h"
+#include "ulink.hpp"
 
 
 TEST_CASE("basic ull tests") {
 
-    struct Element : ull::Node<Element> { int value; };
+    struct Element : ulink::Node<Element> { int value; };
 
-    ull::List<Element> list;
+    ulink::List<Element> list;
 
     CHECK(list.empty());
     CHECK(list.size() == 0);
@@ -75,7 +75,7 @@ TEST_CASE("basic ull tests") {
 
     CHECK(list.size() == 4);
 
-    auto incFront = [&list] (ull::List<Element>& ll) {
+    auto incFront = [&list] (ulink::List<Element>& ll) {
         ll.front().value++;
         };
 

@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.13)        # CMake version check
-project(uLL VERSION 0.0.1 LANGUAGES CXX)    # Create project "simple_example"
-set(CMAKE_CXX_STANDARD 17)                  # Enable c++17 standard
+cmake_minimum_required(VERSION 3.13)            # CMake version check
+project(uLink VERSION 0.0.1 LANGUAGES CXX)      # Create project
+set(CMAKE_CXX_STANDARD 17)                      # Enable c++17 standard
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
@@ -13,8 +13,8 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
     add_subdirectory(tests)
 
-    # add_test(ull_tests  ull_tests)
+    # add_test(ulink_tests  ull_tests)
     
-    # add_test(NAME ullTests COMMAND $<TARGET_FILE:tests/tests.cpp>)
+    # add_test(NAME ulinkTests COMMAND $<TARGET_FILE:tests/tests.cpp>)
     
 # endif()
