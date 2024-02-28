@@ -31,7 +31,7 @@
 #include <csignal>
 #include <type_traits>
 
-namespace ull {
+namespace ulink {
 
     // forward declaration
     template<typename T>
