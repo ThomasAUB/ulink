@@ -1,4 +1,4 @@
-set(ULINK_UNIT_TESTS ull_tests)
+set(ULINK_UNIT_TESTS ulink_tests)
 
 include(CTest)
 
