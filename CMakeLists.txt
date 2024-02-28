@@ -7,14 +7,14 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
-# if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     enable_testing()
 
     add_subdirectory(tests)
 
-    # add_test(ulink_tests  ulink_tests)
+    add_test(ulink_tests ulink_tests)
     
-    # add_test(NAME ulinkTests COMMAND $<TARGET_FILE:tests/tests.cpp>)
+    add_test(NAME ulinkTests COMMAND ulink_tests)
     
-# endif()
+endif()
