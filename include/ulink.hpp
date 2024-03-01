@@ -72,6 +72,7 @@ namespace ulink {
         using value_type = node_t;
         using size_type = std::size_t;
         using reference = value_type&;
+        using const_reference = const value_type&;
 
         List();
 
@@ -83,8 +84,11 @@ namespace ulink {
         const_iterator begin() const;
         const_iterator end() const;
 
-        value_type& front();
-        value_type& back();
+        reference front();
+        reference back();
+
+        const_reference front() const;
+        const_reference back() const;
 
         size_type size() const;
         bool empty() const;
@@ -147,6 +151,22 @@ namespace ulink {
 
     template<typename node_t>
     node_t& List<node_t>::back() {
+        if (empty()) {
+            std::raise(SIGSEGV);
+        }
+        return *mEndNode.prev;
+    }
+
+    template<typename node_t>
+    const node_t& List<node_t>::front() const {
+        if (empty()) {
+            std::raise(SIGSEGV);
+        }
+        return *mStartNode.next;
+    }
+
+    template<typename node_t>
+    const node_t& List<node_t>::back() const {
         if (empty()) {
             std::raise(SIGSEGV);
         }
