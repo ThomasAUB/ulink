@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)            # CMake version check
-project(uLink VERSION 0.0.1 LANGUAGES CXX)      # Create project
+project(ulink VERSION 0.0.1 LANGUAGES CXX)      # Create project
 set(CMAKE_CXX_STANDARD 17)                      # Enable c++17 standard
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
