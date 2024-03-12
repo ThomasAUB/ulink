@@ -1,4 +1,4 @@
-![build status](https://github.com/ThomasAUB/uLink/actions/workflows/cmake-multi-platform.yml/badge.svg) [![License](https://img.shields.io/github/license/ThomasAUB/uLink.svg)](LICENSE)
+![build status](https://github.com/ThomasAUB/ulink/actions/workflows/build.yml/badge.svg) [![License](https://img.shields.io/github/license/ThomasAUB/uLink.svg)](LICENSE)
 
 # uLink
 
