@@ -52,16 +52,18 @@ namespace ulink {
             Iterator& operator++() { n = n->next; return *this; }
             bool operator !=(const Iterator& it) const { return (n != it.n); }
             bool operator ==(const Iterator& it) const { return (n == it.n); }
+        private:
             Node<node_t>* n;
         };
 
         struct ConstIterator {
             ConstIterator(const Node<node_t>* n) : n(n) {}
-            ConstIterator(const Iterator it) : n(it.n) {}
+            ConstIterator(Iterator& it) : n(&(*it)) {}
             const node_t& operator*() const { return *static_cast<const node_t*>(n); }
             ConstIterator& operator++() { n = n->next; return *this; }
             bool operator !=(const ConstIterator& it) const { return (n != it.n); }
             bool operator ==(const ConstIterator& it) const { return (n == it.n); }
+        private:
             const Node<node_t>* n;
         };
 
@@ -100,7 +102,9 @@ namespace ulink {
         void pop_front();
         void pop_back();
 
-        void insert(const_iterator pos, reference node);
+        void insert_before(iterator pos, reference node);
+        void insert_after(iterator pos, reference node);
+
         void erase(iterator pos);
 
         ~List() { clear(); }
@@ -226,27 +230,33 @@ namespace ulink {
     }
 
     template<typename node_t>
-    void List<node_t>::insert(const_iterator pos, reference node) {
+    void List<node_t>::insert_before(iterator pos, reference node) {
 
         if (pos == begin()) {
-            push_front(node);
+            insertAfter(mStartNode, node);
         }
         else if (pos == end()) {
-            push_back(node);
+            insertBefore(mEndNode, node);
         }
         else {
-            auto* it = mStartNode.next;
-            auto* e = &mEndNode;
-            auto* p = &(*pos);
-
-            while (it != e && it != p) {
-                it = it->next;
-            }
-
-            if (it == p) {
-                insertBefore(*it, node);
-            }
+            insertBefore(*pos, node);
         }
+
+    }
+
+    template<typename node_t>
+    void List<node_t>::insert_after(iterator pos, reference node) {
+
+        if (pos == begin()) {
+            insertAfter(mStartNode, node);
+        }
+        else if (pos == end()) {
+            insertBefore(mEndNode, node);
+        }
+        else {
+            insertAfter(*pos, node);
+        }
+
     }
 
     template<typename node_t>
@@ -320,8 +330,6 @@ namespace ulink {
     bool Node<T>::isLinked() const {
         return (prev != nullptr);
     }
-
-
 
 
 }

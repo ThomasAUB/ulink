@@ -92,7 +92,7 @@ TEST_CASE("basic ull tests") {
 
     for (auto it = list.begin(); it != list.end(); ++it) {
         if ((*it).value == values[2]) {
-            list.insert(it, e5);
+            list.insert_before(it, e5);
         }
     }
 
