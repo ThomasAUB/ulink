@@ -235,9 +235,6 @@ namespace ulink {
         if (pos == begin()) {
             insertAfter(mStartNode, node);
         }
-        else if (pos == end()) {
-            insertBefore(mEndNode, node);
-        }
         else {
             insertBefore(*pos, node);
         }
@@ -247,10 +244,7 @@ namespace ulink {
     template<typename node_t>
     void List<node_t>::insert_after(iterator pos, reference node) {
 
-        if (pos == begin()) {
-            insertAfter(mStartNode, node);
-        }
-        else if (pos == end()) {
+        if (pos == end()) {
             insertBefore(mEndNode, node);
         }
         else {
