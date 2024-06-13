@@ -47,24 +47,24 @@ namespace ulink {
             );
 
         struct Iterator {
-            Iterator(Node<node_t>* n) : n(n) {}
-            node_t& operator*() { return *static_cast<node_t*>(n); }
-            Iterator& operator++() { n = n->next; return *this; }
-            bool operator !=(const Iterator& it) const { return (n != it.n); }
-            bool operator ==(const Iterator& it) const { return (n == it.n); }
+            Iterator(Node<node_t>* n) : mNode(n) {}
+            node_t& operator*() { return *static_cast<node_t*>(mNode); }
+            Iterator& operator++() { mNode = mNode->next; return *this; }
+            bool operator !=(const Iterator& it) const { return (mNode != it.mNode); }
+            bool operator ==(const Iterator& it) const { return (mNode == it.mNode); }
         private:
-            Node<node_t>* n;
+            Node<node_t>* mNode;
         };
 
         struct ConstIterator {
-            ConstIterator(const Node<node_t>* n) : n(n) {}
-            ConstIterator(Iterator& it) : n(&(*it)) {}
-            const node_t& operator*() const { return *static_cast<const node_t*>(n); }
-            ConstIterator& operator++() { n = n->next; return *this; }
-            bool operator !=(const ConstIterator& it) const { return (n != it.n); }
-            bool operator ==(const ConstIterator& it) const { return (n == it.n); }
+            ConstIterator(const Node<node_t>* n) : mNode(n) {}
+            ConstIterator(Iterator& it) : mNode(&(*it)) {}
+            const node_t& operator*() const { return *static_cast<const node_t*>(mNode); }
+            ConstIterator& operator++() { mNode = mNode->next; return *this; }
+            bool operator !=(const ConstIterator& it) const { return (mNode != it.mNode); }
+            bool operator ==(const ConstIterator& it) const { return (mNode == it.mNode); }
         private:
-            const Node<node_t>* n;
+            const Node<node_t>* mNode;
         };
 
     public:
