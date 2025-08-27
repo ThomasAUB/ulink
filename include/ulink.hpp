@@ -69,10 +69,35 @@ namespace ulink {
             const Node<node_t>* mNode;
         };
 
+        struct ReverseIterator {
+            ReverseIterator(Node<node_t>* n) : mNode(n) {}
+            node_t& operator*() { return *static_cast<node_t*>(mNode); }
+            ReverseIterator& operator++() { mNode = mNode->prev; return *this; }
+            ReverseIterator& operator--() { mNode = mNode->next; return *this; }
+            bool operator !=(const ReverseIterator& it) const { return (mNode != it.mNode); }
+            bool operator ==(const ReverseIterator& it) const { return (mNode == it.mNode); }
+        private:
+            Node<node_t>* mNode;
+        };
+
+        struct ConstReverseIterator {
+            ConstReverseIterator(const Node<node_t>* n) : mNode(n) {}
+            ConstReverseIterator(ReverseIterator& it) : mNode(&(*it)) {}
+            const node_t& operator*() const { return *static_cast<const node_t*>(mNode); }
+            ConstReverseIterator& operator++() { mNode = mNode->prev; return *this; }
+            ConstReverseIterator& operator--() { mNode = mNode->next; return *this; }
+            bool operator !=(const ConstReverseIterator& it) const { return (mNode != it.mNode); }
+            bool operator ==(const ConstReverseIterator& it) const { return (mNode == it.mNode); }
+        private:
+            const Node<node_t>* mNode;
+        };
+
     public:
 
         using iterator = Iterator;
         using const_iterator = ConstIterator;
+        using reverse_iterator = ReverseIterator;
+        using const_reverse_iterator = ConstReverseIterator;
         using value_type = node_t;
         using size_type = std::size_t;
         using reference = value_type&;
@@ -87,6 +112,12 @@ namespace ulink {
 
         const_iterator begin() const;
         const_iterator end() const;
+
+        reverse_iterator rbegin();
+        reverse_iterator rend();
+
+        const_reverse_iterator rbegin() const;
+        const_reverse_iterator rend() const;
 
         reference front();
         reference back();
@@ -145,6 +176,26 @@ namespace ulink {
     template<typename node_t>
     typename List<node_t>::const_iterator List<node_t>::end() const {
         return const_iterator(&mEndNode);
+    }
+
+    template<typename node_t>
+    typename List<node_t>::reverse_iterator List<node_t>::rbegin() {
+        return reverse_iterator(mEndNode.prev);
+    }
+
+    template<typename node_t>
+    typename List<node_t>::reverse_iterator List<node_t>::rend() {
+        return reverse_iterator(&mStartNode);
+    }
+
+    template<typename node_t>
+    typename List<node_t>::const_reverse_iterator List<node_t>::rbegin() const {
+        return const_reverse_iterator(mEndNode.prev);
+    }
+
+    template<typename node_t>
+    typename List<node_t>::const_reverse_iterator List<node_t>::rend() const {
+        return const_reverse_iterator(&mStartNode);
     }
 
     template<typename node_t>

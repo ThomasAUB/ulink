@@ -60,6 +60,12 @@ TEST_CASE("basic ull tests") {
             CHECK(n.value == values[i++]);
         }
     }
+    {
+        int i = 3;
+        for (auto it = list.rbegin(); it != list.rend(); ++it) {
+            CHECK((*it).value == values[i--]);
+        }
+    }
 
     CHECK(e4.value == values[0]);
     CHECK(e3.value == values[1]);
@@ -111,6 +117,25 @@ TEST_CASE("basic ull tests") {
         CHECK(&(*it) == &e4);
         --it;
         CHECK(&(*it) == &e5);
+    }
+
+    { // reverse iterator test
+        // the order now should be: e5, e4, e3, e1, e2
+        // so reverse order is:     e2, e1, e3, e4, e5
+        auto it = list.rbegin();
+        CHECK(&(*it) == &e2);
+        ++it;
+        CHECK(&(*it) == &e1);
+        ++it;
+        CHECK(&(*it) == &e3);
+        ++it;
+        CHECK(&(*it) == &e4);
+        --it;
+        CHECK(&(*it) == &e3);
+        --it;
+        CHECK(&(*it) == &e1);
+        --it;
+        CHECK(&(*it) == &e2);
     }
 
     list.erase(list.begin());
