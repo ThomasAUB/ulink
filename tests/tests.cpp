@@ -104,6 +104,15 @@ TEST_CASE("basic ull tests") {
     // check that the size is unchanged
     CHECK(list.size() == 5);
 
+    { // iterator test
+        auto it = list.begin();
+        CHECK(&(*it) == &e5);
+        ++it;
+        CHECK(&(*it) == &e4);
+        --it;
+        CHECK(&(*it) == &e5);
+    }
+
     list.erase(list.begin());
 
     CHECK(list.size() == 4);
