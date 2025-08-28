@@ -53,6 +53,7 @@ namespace ulink {
             Iterator& operator--() { mNode = mNode->prev; return *this; }
             bool operator !=(const Iterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const Iterator& it) const { return (mNode == it.mNode); }
+            node_t* operator ->() { return static_cast<node_t*>(mNode); }
         private:
             Node<node_t>* mNode;
         };
@@ -65,6 +66,7 @@ namespace ulink {
             ConstIterator& operator--() { mNode = mNode->prev; return *this; }
             bool operator !=(const ConstIterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const ConstIterator& it) const { return (mNode == it.mNode); }
+            const node_t* operator ->() const { return static_cast<const node_t*>(mNode); }
         private:
             const Node<node_t>* mNode;
         };
@@ -76,6 +78,7 @@ namespace ulink {
             ReverseIterator& operator--() { mNode = mNode->next; return *this; }
             bool operator !=(const ReverseIterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const ReverseIterator& it) const { return (mNode == it.mNode); }
+            node_t* operator ->() { return static_cast<node_t*>(mNode); }
         private:
             Node<node_t>* mNode;
         };
@@ -88,6 +91,7 @@ namespace ulink {
             ConstReverseIterator& operator--() { mNode = mNode->next; return *this; }
             bool operator !=(const ConstReverseIterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const ConstReverseIterator& it) const { return (mNode == it.mNode); }
+            const node_t* operator ->() const { return static_cast<const node_t*>(mNode); }
         private:
             const Node<node_t>* mNode;
         };
