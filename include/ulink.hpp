@@ -46,11 +46,12 @@ namespace ulink {
             "Node type error"
             );
 
+        template<bool is_forward>
         struct Iterator {
             Iterator(Node<node_t>* n) : mNode(n) {}
             node_t& operator*() { return *static_cast<node_t*>(mNode); }
-            Iterator& operator++() { mNode = mNode->next; return *this; }
-            Iterator& operator--() { mNode = mNode->prev; return *this; }
+            Iterator& operator++() { mNode = is_forward ? mNode->next : mNode->prev; return *this; }
+            Iterator& operator--() { mNode = is_forward ? mNode->prev : mNode->next; return *this; }
             bool operator !=(const Iterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const Iterator& it) const { return (mNode == it.mNode); }
             node_t* operator ->() { return static_cast<node_t*>(mNode); }
@@ -58,12 +59,13 @@ namespace ulink {
             Node<node_t>* mNode;
         };
 
+        template<bool is_forward>
         struct ConstIterator {
             ConstIterator(const Node<node_t>* n) : mNode(n) {}
-            ConstIterator(Iterator& it) : mNode(&(*it)) {}
+            ConstIterator(Iterator<is_forward>& it) : mNode(&(*it)) {}
             const node_t& operator*() const { return *static_cast<const node_t*>(mNode); }
-            ConstIterator& operator++() { mNode = mNode->next; return *this; }
-            ConstIterator& operator--() { mNode = mNode->prev; return *this; }
+            ConstIterator& operator++() { mNode = is_forward ? mNode->next : mNode->prev; return *this; }
+            ConstIterator& operator--() { mNode = is_forward ? mNode->prev : mNode->next; return *this; }
             bool operator !=(const ConstIterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const ConstIterator& it) const { return (mNode == it.mNode); }
             const node_t* operator ->() const { return static_cast<const node_t*>(mNode); }
@@ -71,37 +73,12 @@ namespace ulink {
             const Node<node_t>* mNode;
         };
 
-        struct ReverseIterator {
-            ReverseIterator(Node<node_t>* n) : mNode(n) {}
-            node_t& operator*() { return *static_cast<node_t*>(mNode); }
-            ReverseIterator& operator++() { mNode = mNode->prev; return *this; }
-            ReverseIterator& operator--() { mNode = mNode->next; return *this; }
-            bool operator !=(const ReverseIterator& it) const { return (mNode != it.mNode); }
-            bool operator ==(const ReverseIterator& it) const { return (mNode == it.mNode); }
-            node_t* operator ->() { return static_cast<node_t*>(mNode); }
-        private:
-            Node<node_t>* mNode;
-        };
-
-        struct ConstReverseIterator {
-            ConstReverseIterator(const Node<node_t>* n) : mNode(n) {}
-            ConstReverseIterator(ReverseIterator& it) : mNode(&(*it)) {}
-            const node_t& operator*() const { return *static_cast<const node_t*>(mNode); }
-            ConstReverseIterator& operator++() { mNode = mNode->prev; return *this; }
-            ConstReverseIterator& operator--() { mNode = mNode->next; return *this; }
-            bool operator !=(const ConstReverseIterator& it) const { return (mNode != it.mNode); }
-            bool operator ==(const ConstReverseIterator& it) const { return (mNode == it.mNode); }
-            const node_t* operator ->() const { return static_cast<const node_t*>(mNode); }
-        private:
-            const Node<node_t>* mNode;
-        };
-
     public:
 
-        using iterator = Iterator;
-        using const_iterator = ConstIterator;
-        using reverse_iterator = ReverseIterator;
-        using const_reverse_iterator = ConstReverseIterator;
+        using iterator = Iterator<true>;
+        using const_iterator = ConstIterator<true>;
+        using reverse_iterator = Iterator<false>;
+        using const_reverse_iterator = ConstIterator<false>;
         using value_type = node_t;
         using size_type = std::size_t;
         using reference = value_type&;
