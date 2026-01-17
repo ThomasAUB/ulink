@@ -37,6 +37,12 @@ namespace ulink {
     template<typename T>
     struct Node;
 
+    template<typename node_t>
+    class List;
+
+    template<typename node_t>
+    void swap(List<node_t>& lhs, List<node_t>& rhs) noexcept;
+
     // non-owning doubly linkled list
     template<typename node_t>
     class List {
@@ -87,6 +93,9 @@ namespace ulink {
         List();
 
         List(const List<node_t>& other) = delete;
+        List& operator=(const List<node_t>& other) = delete;
+
+        static void swap(List& lhs, List& rhs) noexcept;
 
         iterator begin();
         iterator end();
@@ -112,6 +121,7 @@ namespace ulink {
 
         void push_front(reference node);
         void push_back(reference node);
+        void splice(iterator pos, List& other);
 
         void pop_front();
         void pop_back();
@@ -137,6 +147,49 @@ namespace ulink {
     List<node_t>::List() {
         mStartNode.next = static_cast<value_type*>(&mEndNode);
         mEndNode.prev = static_cast<value_type*>(&mStartNode);
+    }
+
+    template<typename node_t>
+    void List<node_t>::swap(List<node_t>& lhs, List<node_t>& rhs) noexcept {
+
+        if (&lhs == &rhs) {
+            return;
+        }
+
+        auto* lhsFirst = lhs.mStartNode.next;
+        auto* lhsLast = lhs.mEndNode.prev;
+        auto* rhsFirst = rhs.mStartNode.next;
+        auto* rhsLast = rhs.mEndNode.prev;
+
+        const bool lhsEmpty = (lhsFirst == static_cast<value_type*>(&lhs.mEndNode));
+        const bool rhsEmpty = (rhsFirst == static_cast<value_type*>(&rhs.mEndNode));
+
+        if (rhsEmpty) {
+            lhs.mStartNode.next = static_cast<value_type*>(&lhs.mEndNode);
+            lhs.mEndNode.prev = static_cast<value_type*>(&lhs.mStartNode);
+        }
+        else {
+            lhs.mStartNode.next = rhsFirst;
+            lhs.mEndNode.prev = rhsLast;
+            rhsFirst->prev = static_cast<value_type*>(&lhs.mStartNode);
+            rhsLast->next = static_cast<value_type*>(&lhs.mEndNode);
+        }
+
+        if (lhsEmpty) {
+            rhs.mStartNode.next = static_cast<value_type*>(&rhs.mEndNode);
+            rhs.mEndNode.prev = static_cast<value_type*>(&rhs.mStartNode);
+        }
+        else {
+            rhs.mStartNode.next = lhsFirst;
+            rhs.mEndNode.prev = lhsLast;
+            lhsFirst->prev = static_cast<value_type*>(&rhs.mStartNode);
+            lhsLast->next = static_cast<value_type*>(&rhs.mEndNode);
+        }
+    }
+
+    template<typename node_t>
+    void swap(List<node_t>& lhs, List<node_t>& rhs) noexcept {
+        List<node_t>::swap(lhs, rhs);
     }
 
     template<typename node_t>
@@ -248,6 +301,32 @@ namespace ulink {
     }
 
     template<typename node_t>
+    void List<node_t>::splice(iterator pos, List<node_t>& other) {
+
+        if (&other == this || other.empty()) {
+            return;
+        }
+
+        // splice the whole "other" range before the target position
+        auto* first = other.mStartNode.next;
+        auto* last = other.mEndNode.prev;
+        auto* posValue = (&(*pos) == &mEndNode)
+            ? static_cast<value_type*>(&mEndNode)
+            : &(*pos);
+
+        // hook other range before posValue
+        auto* before = posValue->prev;
+        before->next = first;
+        first->prev = before;
+        last->next = posValue;
+        posValue->prev = last;
+
+        // leave "other" empty
+        other.mStartNode.next = static_cast<value_type*>(&other.mEndNode);
+        other.mEndNode.prev = static_cast<value_type*>(&other.mStartNode);
+    }
+
+    template<typename node_t>
     void List<node_t>::pop_front() {
         if (empty()) {
             return;
@@ -300,9 +379,7 @@ namespace ulink {
     template<typename node_t>
     void List<node_t>::insertAfter(Node<node_t>& pos, reference node) {
         node.remove();
-        node.prev = static_cast<node_t*>(&pos);
-        // pos can not be the ending node
-        // so next is always supposed to be non-null
+        node.prev = static_cast<value_type*>(&pos);
         node.next = pos.next;
         node.next->prev = &node;
         pos.next = &node;
@@ -311,9 +388,7 @@ namespace ulink {
     template<typename node_t>
     void List<node_t>::insertBefore(Node<node_t>& pos, reference node) {
         node.remove();
-        node.next = static_cast<node_t*>(&pos);
-        // pos can not be the starting node
-        // so prev is always supposed to be non-null
+        node.next = static_cast<value_type*>(&pos);
         node.prev = pos.prev;
         node.prev->next = &node;
         pos.prev = &node;
