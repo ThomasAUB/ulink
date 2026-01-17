@@ -174,5 +174,33 @@ TEST_CASE("basic ull tests") {
     CHECK(list.size() == 0);
     CHECK(list.empty());
 
+    { // append another list at the back
+        Element a1; a1.value = 1;
+        Element a2; a2.value = 2;
+        Element b1; b1.value = 3;
+        Element b2; b2.value = 4;
+
+        list.push_back(a1);
+        list.push_back(a2);
+
+        ulink::List<Element> other;
+        other.push_back(b1);
+        other.push_back(b2);
+
+        list.splice(list.end(), other);
+
+        CHECK(list.size() == 4);
+        CHECK(other.empty());
+
+        const int expected[] = { 1, 2, 3, 4 };
+        int i = 0;
+        for (auto& n : list) {
+            CHECK(n.value == expected[i++]);
+        }
+    }
+
+    CHECK(list.size() == 0);
+    CHECK(list.empty());
+
 }
 

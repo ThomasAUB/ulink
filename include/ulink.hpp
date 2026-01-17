@@ -121,6 +121,7 @@ namespace ulink {
 
         void push_front(reference node);
         void push_back(reference node);
+        void splice(iterator pos, List& other);
 
         void pop_front();
         void pop_back();
@@ -300,6 +301,32 @@ namespace ulink {
     }
 
     template<typename node_t>
+    void List<node_t>::splice(iterator pos, List<node_t>& other) {
+
+        if (&other == this || other.empty()) {
+            return;
+        }
+
+        // splice the whole "other" range before the target position
+        auto* first = other.mStartNode.next;
+        auto* last = other.mEndNode.prev;
+        auto* posValue = (&(*pos) == &mEndNode)
+            ? static_cast<value_type*>(&mEndNode)
+            : &(*pos);
+
+        // hook other range before posValue
+        auto* before = posValue->prev;
+        before->next = first;
+        first->prev = before;
+        last->next = posValue;
+        posValue->prev = last;
+
+        // leave "other" empty
+        other.mStartNode.next = static_cast<value_type*>(&other.mEndNode);
+        other.mEndNode.prev = static_cast<value_type*>(&other.mStartNode);
+    }
+
+    template<typename node_t>
     void List<node_t>::pop_front() {
         if (empty()) {
             return;
@@ -352,9 +379,7 @@ namespace ulink {
     template<typename node_t>
     void List<node_t>::insertAfter(Node<node_t>& pos, reference node) {
         node.remove();
-        node.prev = static_cast<node_t*>(&pos);
-        // pos can not be the ending node
-        // so next is always supposed to be non-null
+        node.prev = static_cast<value_type*>(&pos);
         node.next = pos.next;
         node.next->prev = &node;
         pos.next = &node;
@@ -363,9 +388,7 @@ namespace ulink {
     template<typename node_t>
     void List<node_t>::insertBefore(Node<node_t>& pos, reference node) {
         node.remove();
-        node.next = static_cast<node_t*>(&pos);
-        // pos can not be the starting node
-        // so prev is always supposed to be non-null
+        node.next = static_cast<value_type*>(&pos);
         node.prev = pos.prev;
         node.prev->next = &node;
         pos.prev = &node;
