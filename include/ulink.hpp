@@ -37,6 +37,12 @@ namespace ulink {
     template<typename T>
     struct Node;
 
+    template<typename node_t>
+    class List;
+
+    template<typename node_t>
+    void swap(List<node_t>& lhs, List<node_t>& rhs) noexcept;
+
     // non-owning doubly linkled list
     template<typename node_t>
     class List {
@@ -87,6 +93,9 @@ namespace ulink {
         List();
 
         List(const List<node_t>& other) = delete;
+        List& operator=(const List<node_t>& other) = delete;
+
+        static void swap(List& lhs, List& rhs) noexcept;
 
         iterator begin();
         iterator end();
@@ -137,6 +146,49 @@ namespace ulink {
     List<node_t>::List() {
         mStartNode.next = static_cast<value_type*>(&mEndNode);
         mEndNode.prev = static_cast<value_type*>(&mStartNode);
+    }
+
+    template<typename node_t>
+    void List<node_t>::swap(List<node_t>& lhs, List<node_t>& rhs) noexcept {
+
+        if (&lhs == &rhs) {
+            return;
+        }
+
+        auto* lhsFirst = lhs.mStartNode.next;
+        auto* lhsLast = lhs.mEndNode.prev;
+        auto* rhsFirst = rhs.mStartNode.next;
+        auto* rhsLast = rhs.mEndNode.prev;
+
+        const bool lhsEmpty = (lhsFirst == static_cast<value_type*>(&lhs.mEndNode));
+        const bool rhsEmpty = (rhsFirst == static_cast<value_type*>(&rhs.mEndNode));
+
+        if (rhsEmpty) {
+            lhs.mStartNode.next = static_cast<value_type*>(&lhs.mEndNode);
+            lhs.mEndNode.prev = static_cast<value_type*>(&lhs.mStartNode);
+        }
+        else {
+            lhs.mStartNode.next = rhsFirst;
+            lhs.mEndNode.prev = rhsLast;
+            rhsFirst->prev = static_cast<value_type*>(&lhs.mStartNode);
+            rhsLast->next = static_cast<value_type*>(&lhs.mEndNode);
+        }
+
+        if (lhsEmpty) {
+            rhs.mStartNode.next = static_cast<value_type*>(&rhs.mEndNode);
+            rhs.mEndNode.prev = static_cast<value_type*>(&rhs.mStartNode);
+        }
+        else {
+            rhs.mStartNode.next = lhsFirst;
+            rhs.mEndNode.prev = lhsLast;
+            lhsFirst->prev = static_cast<value_type*>(&rhs.mStartNode);
+            lhsLast->next = static_cast<value_type*>(&rhs.mEndNode);
+        }
+    }
+
+    template<typename node_t>
+    void swap(List<node_t>& lhs, List<node_t>& rhs) noexcept {
+        List<node_t>::swap(lhs, rhs);
     }
 
     template<typename node_t>
