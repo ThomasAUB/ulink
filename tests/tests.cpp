@@ -4,6 +4,10 @@
 #include "doctest.h"
 
 #include "ulink.hpp"
+#include <random>
+#include <vector>
+#include <random>
+#include <chrono>
 
 // Helper utilities to make tests clearer and reduce duplication.
 namespace test_helpers {
@@ -199,5 +203,160 @@ TEST_CASE("sort orders elements") {
     }
 
     CHECK(list.size() == 6);
+}
+
+TEST_CASE("sort benchmark") {
+
+    struct N : ulink::Node<N> {
+
+        uint32_t mValue;
+
+        void sortNode() {
+
+            if (!this->isLinked()) {
+                return;
+            }
+
+            auto* prevNode = this->prev->prev;
+            auto* nextNode = this->next->next;
+
+            if (prevNode && mValue < this->prev->mValue) {
+                // move task to the left
+
+                while (prevNode->prev && mValue < prevNode->mValue) {
+                    prevNode = prevNode->prev;
+                }
+
+                // insert after prevTask
+
+                this->ulink::Node<N>::remove();
+
+                this->prev = prevNode;
+                this->next = prevNode->next;
+                this->prev->next = this;
+                this->next->prev = this;
+
+            }
+            else if (nextNode && this->next->mValue < mValue) {
+                // move task to the right
+
+                while (nextNode->next && nextNode->mValue < mValue) {
+                    nextNode = nextNode->next;
+                }
+
+                // insert before nextNode
+
+                this->ulink::Node<N>::remove();
+
+                this->next = nextNode;
+                this->prev = nextNode->prev;
+                this->next->prev = this;
+                this->prev->next = this;
+
+            }
+
+        }
+
+    };
+
+    constexpr size_t NODES = 1000;
+    std::vector<uint32_t> values(NODES);
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<uint32_t> dist(0, 1000000);
+    for (auto& v : values) v = dist(rng);
+
+    // Benchmark List::sort
+    std::vector<N> nodes1(NODES);
+    ulink::List<N> list1;
+
+    for (size_t i = 0; i < NODES; ++i) {
+        nodes1[i].mValue = values[i];
+        list1.push_back(nodes1[i]);
+    }
+
+    auto start1 = std::chrono::high_resolution_clock::now();
+
+    list1.sort([] (const N& a, const N& b) { return a.mValue < b.mValue; });
+
+    auto end1 = std::chrono::high_resolution_clock::now();
+
+    auto dur1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1).count();
+
+    // Verify sorted
+    uint32_t last = 0;
+    bool first = true;
+
+    for (auto& n : list1) {
+        if (!first) CHECK(n.mValue >= last);
+        last = n.mValue;
+        first = false;
+    }
+
+    // Benchmark N::sortNode (insertion sort style)
+    std::vector<N> nodes2(NODES);
+
+    ulink::List<N> list2;
+
+    for (size_t i = 0; i < NODES; ++i) {
+        nodes2[i].mValue = values[i];
+        list2.push_back(nodes2[i]);
+    }
+
+    auto start2 = std::chrono::high_resolution_clock::now();
+
+    for (auto& n : nodes2) n.sortNode();
+
+    auto end2 = std::chrono::high_resolution_clock::now();
+    auto dur2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2).count();
+
+    // Verify sorted
+    last = 0;
+    first = true;
+
+    for (auto& n : list2) {
+        if (!first) CHECK(n.mValue >= last);
+        last = n.mValue;
+        first = false;
+    }
+
+    std::cout << "List::sort:    " << dur1 << " us\n";
+    std::cout << "N::sortNode:   " << dur2 << " us\n";
+
+    { // single node sort
+        auto rdnVal = dist(rng);
+
+        N n1, n2;
+        n1.mValue = dist(rng);
+        n2.mValue = n1.mValue;
+
+        auto it1 = list1.begin();
+        auto it2 = list2.begin();
+
+        for (uint32_t i = 0; i < NODES / 2; i++) {
+            ++it1;
+            ++it2;
+        }
+
+        list1.insert_after(it1, n1);
+        list1.insert_after(it2, n2);
+
+        auto singleStart1 = std::chrono::high_resolution_clock::now();
+
+        n1.sortNode();
+
+        auto singlEnd1 = std::chrono::high_resolution_clock::now();
+
+        auto singleStart2 = std::chrono::high_resolution_clock::now();
+
+        list2.sort([] (const N& a, const N& b) { return a.mValue < b.mValue; });
+
+        auto singlEnd2 = std::chrono::high_resolution_clock::now();
+
+        auto singleDur1 = std::chrono::duration_cast<std::chrono::microseconds>(singlEnd1 - singlEnd1).count();
+        auto singleDur2 = std::chrono::duration_cast<std::chrono::microseconds>(singlEnd2 - singleStart2).count();
+
+        std::cout << "single List::sort:    " << singleDur2 << " us\n";
+        std::cout << "single N::sortNode:   " << singleDur1 << " us\n";
+    }
 }
 
