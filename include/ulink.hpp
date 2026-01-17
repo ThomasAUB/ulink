@@ -27,8 +27,10 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <csignal>
+#include <functional>
 #include <type_traits>
 
 namespace ulink {
@@ -122,6 +124,11 @@ namespace ulink {
         void push_front(reference node);
         void push_back(reference node);
         void splice(iterator pos, List& other);
+
+        template<typename Compare>
+        void sort(Compare comp);
+
+        void sort();
 
         void pop_front();
         void pop_back();
@@ -324,6 +331,97 @@ namespace ulink {
         // leave "other" empty
         other.mStartNode.next = static_cast<value_type*>(&other.mEndNode);
         other.mEndNode.prev = static_cast<value_type*>(&other.mStartNode);
+    }
+
+    template<typename node_t>
+    template<typename Compare>
+    void List<node_t>::sort(Compare comp) {
+
+        auto* endSentinel = static_cast<value_type*>(&mEndNode);
+        auto* head = mStartNode.next;
+
+        if (head == endSentinel) {
+            return; // empty
+        }
+
+        auto* last = mEndNode.prev;
+        if (head == last) {
+            return; // single element
+        }
+
+        head->prev = nullptr; // sentinel disconnect
+        last->next = nullptr;
+
+        auto mergeLists = [&comp] (value_type* a, value_type* b) -> value_type* {
+            value_type* mergedHead = nullptr;
+            value_type** tailNext = &mergedHead;
+
+            while (a && b) {
+                if (comp(*b, *a)) {
+                    *tailNext = b;
+                    b = b->next;
+                }
+                else {
+                    *tailNext = a;
+                    a = a->next;
+                }
+                tailNext = &((*tailNext)->next);
+            }
+
+            *tailNext = (a ? a : b);
+            return mergedHead;
+            };
+
+        std::array<value_type*, 16> counter {};
+        std::size_t fill = 0;
+
+        while (head) {
+            auto* carry = head;
+            head = head->next;
+            carry->next = nullptr;
+
+            std::size_t i = 0;
+            for (; i < counter.size() && counter[i]; ++i) {
+                carry = mergeLists(counter[i], carry);
+                counter[i] = nullptr;
+            }
+
+            if (i == counter.size()) {
+                carry = mergeLists(counter.back(), carry);
+                counter.back() = carry;
+            }
+            else {
+                counter[i] = carry;
+                if (i + 1 > fill) {
+                    fill = i + 1;
+                }
+            }
+        }
+
+        value_type* result = nullptr;
+        for (std::size_t i = 0; i < fill; ++i) {
+            if (!counter[i]) {
+                continue;
+            }
+            result = result ? mergeLists(counter[i], result) : counter[i];
+        }
+
+        auto* prev = static_cast<value_type*>(&mStartNode);
+        auto* current = result;
+        while (current) {
+            current->prev = prev;
+            prev->next = current;
+            prev = current;
+            current = current->next;
+        }
+
+        prev->next = endSentinel;
+        mEndNode.prev = prev;
+    }
+
+    template<typename node_t>
+    void List<node_t>::sort() {
+        sort(std::less<value_type>{});
     }
 
     template<typename node_t>

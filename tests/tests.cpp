@@ -204,3 +204,61 @@ TEST_CASE("basic ull tests") {
 
 }
 
+
+TEST_CASE("sort orders elements") {
+
+    struct Element : ulink::Node<Element> {
+        Element(int k, int o) : key(k), order(o) {}
+        int key;
+        int order;
+    };
+
+    Element a(3, 0);
+    Element b(1, 1);
+    Element c(3, 2);
+    Element d(2, 3);
+    Element e(1, 4);
+    Element f(2, 5);
+
+    ulink::List<Element> list;
+
+    list.push_back(a);
+    list.push_back(b);
+    list.push_back(c);
+    list.push_back(d);
+    list.push_back(e);
+    list.push_back(f);
+
+    list.sort([](const Element& lhs, const Element& rhs) {
+        return lhs.key < rhs.key;
+        });
+
+    const int expectedKeysAsc[] = { 1, 1, 2, 2, 3, 3 };
+    const int expectedOrderAsc[] = { 1, 4, 3, 5, 0, 2 };
+
+    {
+        int idx = 0;
+        for (auto& n : list) {
+            CHECK(n.key == expectedKeysAsc[idx]);
+            CHECK(n.order == expectedOrderAsc[idx]);
+            idx++;
+        }
+    }
+
+    list.sort([](const Element& lhs, const Element& rhs) {
+        return lhs.key > rhs.key;
+        });
+
+    const int expectedKeysDesc[] = { 3, 3, 2, 2, 1, 1 };
+
+    {
+        int idx = 0;
+        for (auto& n : list) {
+            CHECK(n.key == expectedKeysDesc[idx]);
+            idx++;
+        }
+    }
+
+    CHECK(list.size() == 6);
+}
+
