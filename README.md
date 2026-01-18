@@ -3,13 +3,14 @@
 
 # uLink
 
-Lightweight C++ non-owning linked list library for microcontrollers.
+Lightweight C++ intrusive linked list library for microcontrollers.
 
 - single header file
 - no heap allocation
 - no virtual function
 - no node number limitation nor pre-allocation
 - platform independent
+- mostly std::list compatible
 
 
 ## Example
