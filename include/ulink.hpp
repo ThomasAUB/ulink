@@ -54,29 +54,29 @@ namespace ulink {
 
         template<bool is_forward>
         struct Iterator {
-            Iterator(Node<node_t>* n) : mNode(n) {}
-            node_t& operator*() { return *static_cast<node_t*>(mNode); }
+            Iterator(node_t* n) : mNode(n) {}
+            node_t& operator*() { return *mNode; }
             Iterator& operator++() { mNode = is_forward ? mNode->next : mNode->prev; return *this; }
             Iterator& operator--() { mNode = is_forward ? mNode->prev : mNode->next; return *this; }
             bool operator !=(const Iterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const Iterator& it) const { return (mNode == it.mNode); }
-            node_t* operator ->() { return static_cast<node_t*>(mNode); }
+            node_t* operator ->() { return mNode; }
         private:
-            Node<node_t>* mNode;
+            node_t* mNode;
         };
 
         template<bool is_forward>
         struct ConstIterator {
-            ConstIterator(const Node<node_t>* n) : mNode(n) {}
-            ConstIterator(Iterator<is_forward>& it) : mNode(&(*it)) {}
-            const node_t& operator*() const { return *static_cast<const node_t*>(mNode); }
+            ConstIterator(const node_t* n) : mNode(n) {}
+            ConstIterator(Iterator<is_forward>& it) : mNode(it.mNode) {}
+            const node_t& operator*() const { return *mNode; }
             ConstIterator& operator++() { mNode = is_forward ? mNode->next : mNode->prev; return *this; }
             ConstIterator& operator--() { mNode = is_forward ? mNode->prev : mNode->next; return *this; }
             bool operator !=(const ConstIterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const ConstIterator& it) const { return (mNode == it.mNode); }
-            const node_t* operator ->() const { return static_cast<const node_t*>(mNode); }
+            const node_t* operator ->() const { return mNode; }
         private:
-            const Node<node_t>* mNode;
+            const node_t* mNode;
         };
 
     public:
@@ -199,7 +199,7 @@ namespace ulink {
 
     template<typename node_t>
     typename List<node_t>::iterator List<node_t>::end() {
-        return iterator(&mEndNode);
+        return iterator(static_cast<node_t*>(&mEndNode));
     }
 
     template<typename node_t>
@@ -219,7 +219,7 @@ namespace ulink {
 
     template<typename node_t>
     typename List<node_t>::reverse_iterator List<node_t>::rend() {
-        return reverse_iterator(&mStartNode);
+        return reverse_iterator(static_cast<node_t*>(&mStartNode));
     }
 
     template<typename node_t>
