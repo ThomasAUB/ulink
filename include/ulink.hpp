@@ -122,6 +122,7 @@ namespace ulink {
         void push_front(reference node);
         void push_back(reference node);
         void splice(iterator pos, List& other);
+        void splice(iterator pos, List& other, iterator first, iterator last);
 
         void pop_front();
         void pop_back();
@@ -324,6 +325,43 @@ namespace ulink {
         // leave "other" empty
         other.mStartNode.next = static_cast<value_type*>(&other.mEndNode);
         other.mEndNode.prev = static_cast<value_type*>(&other.mStartNode);
+    }
+
+    template<typename node_t>
+    void List<node_t>::splice(iterator pos, List<node_t>& other, iterator first, iterator last) {
+
+        if (first == last) {
+            return;
+        }
+
+        if (&other == this) {
+            // If pos lies inside the moved range, do nothing (avoid undefined behavior)
+            for (auto it = first; it != last; ++it) {
+                if (&(*it) == &(*pos)) return;
+            }
+        }
+
+        // nodes for the range [first, last)
+        auto* firstNode = first.operator->();
+        auto* lastNode = last.operator->(); // node after the moved range
+
+        // detach range from other
+        auto* prevFirst = firstNode->prev;
+        auto* lastPrev = lastNode->prev;
+
+        prevFirst->next = lastNode;
+        lastNode->prev = prevFirst;
+
+        // compute insertion point
+        auto* posValue = (&(*pos) == &mEndNode) ? static_cast<value_type*>(&mEndNode) : &(*pos);
+
+        // hook range before posValue
+        auto* before = posValue->prev;
+        before->next = firstNode;
+        firstNode->prev = before;
+        lastPrev->next = posValue;
+        posValue->prev = lastPrev;
+
     }
 
     template<typename node_t>
