@@ -122,6 +122,7 @@ namespace ulink {
         void push_front(reference node);
         void push_back(reference node);
         void splice(iterator pos, List& other);
+        void splice(iterator pos, List& other, iterator it);
         void splice(iterator pos, List& other, iterator first, iterator last);
 
         void pop_front();
@@ -325,6 +326,21 @@ namespace ulink {
         // leave "other" empty
         other.mStartNode.next = static_cast<value_type*>(&other.mEndNode);
         other.mEndNode.prev = static_cast<value_type*>(&other.mStartNode);
+    }
+
+    template<typename node_t>
+    void List<node_t>::splice(iterator pos, List<node_t>& other, iterator it) {
+
+        if (it == other.end()) {
+            return;
+        }
+
+        // If moving inside the same list and inserting before the same node, no-op
+        if (&other == this) {
+            if (&(*it) == &(*pos)) return;
+        }
+
+        insert_before(pos, *it);
     }
 
     template<typename node_t>
