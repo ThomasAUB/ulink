@@ -1,4 +1,5 @@
 #include <iostream>
+#include <utility>
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
@@ -11,6 +12,7 @@ TEST_CASE("empty_and_push") {
 
     CHECK(list.empty());
     CHECK(list.size() == 0);
+    // 2 sentinel nodes, each holding prev + next : no vtable pointer.
     CHECK(sizeof(list) == 4 * sizeof(uintptr_t));
 
     Element e1;
@@ -225,3 +227,115 @@ TEST_CASE("splice_range_iterator") {
     }
 }
 
+
+// Node type with its own virtual functions : the layout that used to make
+// List form a T* to a sentinel that is not a T.
+struct PolyElement : ulink::Node<PolyElement> {
+    PolyElement() = default;
+    PolyElement(int v) : value(v) {}
+    virtual ~PolyElement() = default;
+    virtual int get() const { return value; }
+    int value = 0;
+};
+
+TEST_CASE("polymorphic_node") {
+
+    ulink::List<PolyElement> list;
+
+    // the node carries the vtable pointer, the sentinels do not
+    CHECK(sizeof(list) == 4 * sizeof(uintptr_t));
+    CHECK(sizeof(PolyElement) > sizeof(ulink::Node<PolyElement>));
+
+    PolyElement e1(1), e2(2), e3(3);
+
+    list.push_back(e2);
+    list.push_front(e1);
+    list.insert_before(list.end(), e3); // touches the end sentinel
+
+    CHECK(list.size() == 3);
+    CHECK(list.front().get() == 1);
+    CHECK(list.back().get() == 3);
+
+    // every traversal crosses both sentinels
+    int sum = 0;
+    for (auto& n : list) {
+        sum += n.get();
+    }
+    CHECK(sum == 6);
+
+    sum = 0;
+    for (auto it = list.rbegin(); it != list.rend(); ++it) {
+        sum += it->get();
+    }
+    CHECK(sum == 6);
+
+    const auto& constList = list;
+    sum = 0;
+    for (auto it = constList.begin(); it != constList.end(); ++it) {
+        sum += it->get();
+    }
+    CHECK(sum == 6);
+
+    // virtual dispatch through a base pointer still works
+    PolyElement* p = &list.front();
+    CHECK(p->get() == 1);
+
+    ulink::List<PolyElement> other;
+    other.splice(other.end(), list);
+    CHECK(list.empty());
+    CHECK(other.size() == 3);
+}
+
+TEST_CASE("node_copy_and_move_do_not_copy_links") {
+
+    ulink::List<Element> list;
+
+    Element e1;
+    e1.value = 1;
+    list.push_back(e1);
+
+    CHECK(e1.isLinked());
+
+    // a copy is a new, unlinked node
+    Element copy = e1;
+    CHECK(!copy.isLinked());
+    CHECK(list.size() == 1);
+
+    // a move leaves the source in place
+    Element moved = std::move(e1);
+    CHECK(!moved.isLinked());
+    CHECK(e1.isLinked());
+    CHECK(list.size() == 1);
+    CHECK(&list.front() == &e1);
+
+    // assignment never moves a node between lists
+    Element e2;
+    e2.value = 2;
+    list.push_back(e2);
+    Element unlinked;
+    unlinked = e2;
+    CHECK(!unlinked.isLinked());
+    CHECK(list.size() == 2);
+
+    e2 = unlinked;
+    CHECK(e2.isLinked());
+    CHECK(list.size() == 2);
+}
+
+TEST_CASE("const_iterator_conversion") {
+
+    ulink::List<Element> list;
+
+    Element e1, e2;
+    e1.value = 1;
+    e2.value = 2;
+    list.push_back(e1);
+    list.push_back(e2);
+
+    ulink::List<Element>::const_iterator it = list.begin();
+    CHECK(it->value == 1);
+    ++it;
+    CHECK((*it).value == 2);
+    ++it;
+    CHECK(it == list.end());
+}

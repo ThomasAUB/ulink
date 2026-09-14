@@ -52,31 +52,41 @@ namespace ulink {
             "Node type error"
             );
 
+        // Iterators walk Node<node_t>* so that the past-the-end iterator can
+        // designate a sentinel without ever forming a node_t* to it. The
+        // downcast is performed on dereference only, where the iterator is
+        // required to point to a real node.
+        template<bool is_forward>
+        struct ConstIterator;
+
         template<bool is_forward>
         struct Iterator {
-            Iterator(node_t* n) : mNode(n) {}
-            node_t& operator*() { return *mNode; }
+            Iterator(Node<node_t>* n) : mNode(n) {}
+            node_t& operator*() { return static_cast<node_t&>(*mNode); }
             Iterator& operator++() { mNode = is_forward ? mNode->next : mNode->prev; return *this; }
             Iterator& operator--() { mNode = is_forward ? mNode->prev : mNode->next; return *this; }
             bool operator !=(const Iterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const Iterator& it) const { return (mNode == it.mNode); }
-            node_t* operator ->() { return mNode; }
+            node_t* operator ->() { return static_cast<node_t*>(mNode); }
         private:
-            node_t* mNode;
+            friend class List;
+            friend struct ConstIterator<is_forward>;
+            Node<node_t>* mNode;
         };
 
         template<bool is_forward>
         struct ConstIterator {
-            ConstIterator(const node_t* n) : mNode(n) {}
-            ConstIterator(Iterator<is_forward>& it) : mNode(it.mNode) {}
-            const node_t& operator*() const { return *mNode; }
+            ConstIterator(const Node<node_t>* n) : mNode(n) {}
+            ConstIterator(const Iterator<is_forward>& it) : mNode(it.mNode) {}
+            const node_t& operator*() const { return static_cast<const node_t&>(*mNode); }
             ConstIterator& operator++() { mNode = is_forward ? mNode->next : mNode->prev; return *this; }
             ConstIterator& operator--() { mNode = is_forward ? mNode->prev : mNode->next; return *this; }
             bool operator !=(const ConstIterator& it) const { return (mNode != it.mNode); }
             bool operator ==(const ConstIterator& it) const { return (mNode == it.mNode); }
-            const node_t* operator ->() const { return mNode; }
+            const node_t* operator ->() const { return static_cast<const node_t*>(mNode); }
         private:
-            const node_t* mNode;
+            friend class List;
+            const Node<node_t>* mNode;
         };
 
     public:
@@ -147,8 +157,8 @@ namespace ulink {
 
     template<typename node_t>
     List<node_t>::List() {
-        mStartNode.next = static_cast<value_type*>(&mEndNode);
-        mEndNode.prev = static_cast<value_type*>(&mStartNode);
+        mStartNode.next = &mEndNode;
+        mEndNode.prev = &mStartNode;
     }
 
     template<typename node_t>
@@ -163,29 +173,29 @@ namespace ulink {
         auto* rhsFirst = rhs.mStartNode.next;
         auto* rhsLast = rhs.mEndNode.prev;
 
-        const bool lhsEmpty = (lhsFirst == static_cast<value_type*>(&lhs.mEndNode));
-        const bool rhsEmpty = (rhsFirst == static_cast<value_type*>(&rhs.mEndNode));
+        const bool lhsEmpty = (lhsFirst == &lhs.mEndNode);
+        const bool rhsEmpty = (rhsFirst == &rhs.mEndNode);
 
         if (rhsEmpty) {
-            lhs.mStartNode.next = static_cast<value_type*>(&lhs.mEndNode);
-            lhs.mEndNode.prev = static_cast<value_type*>(&lhs.mStartNode);
+            lhs.mStartNode.next = &lhs.mEndNode;
+            lhs.mEndNode.prev = &lhs.mStartNode;
         }
         else {
             lhs.mStartNode.next = rhsFirst;
             lhs.mEndNode.prev = rhsLast;
-            rhsFirst->prev = static_cast<value_type*>(&lhs.mStartNode);
-            rhsLast->next = static_cast<value_type*>(&lhs.mEndNode);
+            rhsFirst->prev = &lhs.mStartNode;
+            rhsLast->next = &lhs.mEndNode;
         }
 
         if (lhsEmpty) {
-            rhs.mStartNode.next = static_cast<value_type*>(&rhs.mEndNode);
-            rhs.mEndNode.prev = static_cast<value_type*>(&rhs.mStartNode);
+            rhs.mStartNode.next = &rhs.mEndNode;
+            rhs.mEndNode.prev = &rhs.mStartNode;
         }
         else {
             rhs.mStartNode.next = lhsFirst;
             rhs.mEndNode.prev = lhsLast;
-            lhsFirst->prev = static_cast<value_type*>(&rhs.mStartNode);
-            lhsLast->next = static_cast<value_type*>(&rhs.mEndNode);
+            lhsFirst->prev = &rhs.mStartNode;
+            lhsLast->next = &rhs.mEndNode;
         }
     }
 
@@ -201,7 +211,7 @@ namespace ulink {
 
     template<typename node_t>
     typename List<node_t>::iterator List<node_t>::end() {
-        return iterator(static_cast<node_t*>(&mEndNode));
+        return iterator(&mEndNode);
     }
 
     template<typename node_t>
@@ -221,7 +231,7 @@ namespace ulink {
 
     template<typename node_t>
     typename List<node_t>::reverse_iterator List<node_t>::rend() {
-        return reverse_iterator(static_cast<node_t*>(&mStartNode));
+        return reverse_iterator(&mStartNode);
     }
 
     template<typename node_t>
@@ -239,7 +249,7 @@ namespace ulink {
         if (empty()) {
             std::raise(SIGSEGV);
         }
-        return *mStartNode.next;
+        return static_cast<node_t&>(*mStartNode.next);
     }
 
     template<typename node_t>
@@ -247,7 +257,7 @@ namespace ulink {
         if (empty()) {
             std::raise(SIGSEGV);
         }
-        return *mEndNode.prev;
+        return static_cast<node_t&>(*mEndNode.prev);
     }
 
     template<typename node_t>
@@ -255,7 +265,7 @@ namespace ulink {
         if (empty()) {
             std::raise(SIGSEGV);
         }
-        return *mStartNode.next;
+        return static_cast<const node_t&>(*mStartNode.next);
     }
 
     template<typename node_t>
@@ -263,7 +273,7 @@ namespace ulink {
         if (empty()) {
             std::raise(SIGSEGV);
         }
-        return *mEndNode.prev;
+        return static_cast<const node_t&>(*mEndNode.prev);
     }
 
     template<typename node_t>
@@ -312,20 +322,18 @@ namespace ulink {
         // splice the whole "other" range before the target position
         auto* first = other.mStartNode.next;
         auto* last = other.mEndNode.prev;
-        auto* posValue = (&(*pos) == &mEndNode)
-            ? static_cast<value_type*>(&mEndNode)
-            : &(*pos);
+        auto* posNode = pos.mNode;
 
-        // hook other range before posValue
-        auto* before = posValue->prev;
+        // hook other range before posNode
+        auto* before = posNode->prev;
         before->next = first;
         first->prev = before;
-        last->next = posValue;
-        posValue->prev = last;
+        last->next = posNode;
+        posNode->prev = last;
 
         // leave "other" empty
-        other.mStartNode.next = static_cast<value_type*>(&other.mEndNode);
-        other.mEndNode.prev = static_cast<value_type*>(&other.mStartNode);
+        other.mStartNode.next = &other.mEndNode;
+        other.mEndNode.prev = &other.mStartNode;
     }
 
     template<typename node_t>
@@ -337,7 +345,7 @@ namespace ulink {
 
         // If moving inside the same list and inserting before the same node, no-op
         if (&other == this) {
-            if (&(*it) == &(*pos)) return;
+            if (it.mNode == pos.mNode) return;
         }
 
         insert_before(pos, *it);
@@ -353,13 +361,13 @@ namespace ulink {
         if (&other == this) {
             // If pos lies inside the moved range, do nothing (avoid undefined behavior)
             for (auto it = first; it != last; ++it) {
-                if (&(*it) == &(*pos)) return;
+                if (it.mNode == pos.mNode) return;
             }
         }
 
         // nodes for the range [first, last)
-        auto* firstNode = first.operator->();
-        auto* lastNode = last.operator->(); // node after the moved range
+        auto* firstNode = first.mNode;
+        auto* lastNode = last.mNode; // node after the moved range
 
         // detach range from other
         auto* prevFirst = firstNode->prev;
@@ -369,14 +377,14 @@ namespace ulink {
         lastNode->prev = prevFirst;
 
         // compute insertion point
-        auto* posValue = (&(*pos) == &mEndNode) ? static_cast<value_type*>(&mEndNode) : &(*pos);
+        auto* posNode = pos.mNode;
 
-        // hook range before posValue
-        auto* before = posValue->prev;
+        // hook range before posNode
+        auto* before = posNode->prev;
         before->next = firstNode;
         firstNode->prev = before;
-        lastPrev->next = posValue;
-        posValue->prev = lastPrev;
+        lastPrev->next = posNode;
+        posNode->prev = lastPrev;
 
     }
 
@@ -398,14 +406,9 @@ namespace ulink {
 
     template<typename node_t>
     void List<node_t>::insert_before(iterator pos, reference node) {
-
-        if (pos == begin()) {
-            insertAfter(mStartNode, node);
-        }
-        else {
-            insertBefore(*pos, node);
-        }
-
+        // works for every position, end() included : pos.mNode may be a
+        // sentinel, it is only ever used as a Node<node_t>.
+        insertBefore(*pos.mNode, node);
     }
 
     template<typename node_t>
@@ -415,7 +418,7 @@ namespace ulink {
             insertBefore(mEndNode, node);
         }
         else {
-            insertAfter(*pos, node);
+            insertAfter(*pos.mNode, node);
         }
 
     }
@@ -426,14 +429,14 @@ namespace ulink {
             pop_back();
         }
         else {
-            (*pos).remove();
+            pos.mNode->remove();
         }
     }
 
     template<typename node_t>
     void List<node_t>::insertAfter(Node<node_t>& pos, reference node) {
         node.remove();
-        node.prev = static_cast<value_type*>(&pos);
+        node.prev = &pos;
         node.next = pos.next;
         node.next->prev = &node;
         pos.next = &node;
@@ -442,7 +445,7 @@ namespace ulink {
     template<typename node_t>
     void List<node_t>::insertBefore(Node<node_t>& pos, reference node) {
         node.remove();
-        node.next = static_cast<value_type*>(&pos);
+        node.next = &pos;
         node.prev = pos.prev;
         node.prev->next = &node;
         pos.prev = &node;
@@ -453,6 +456,17 @@ namespace ulink {
 
     template<typename T>
     struct Node {
+
+        Node() = default;
+
+        // A node's links describe its position in a list, which is a
+        // property of the list and not of the node's value. Copying or
+        // moving therefore never copies the links : the new node starts
+        // unlinked, and assignment leaves the destination where it is.
+        Node(const Node&) {}
+        Node(Node&&) noexcept {}
+        Node& operator=(const Node&) { return *this; }
+        Node& operator=(Node&&) noexcept { return *this; }
 
         void remove();
 
@@ -465,8 +479,15 @@ namespace ulink {
         template<typename node_t>
         friend class List;
 
-        T* prev = nullptr;
-        T* next = nullptr;
+        // Links are stored as Node<T>* and never as T*. List's sentinels
+        // are bare Node<T> that are never part of a real T, so holding
+        // them as T* would require a static_cast<T*> of an object that is
+        // not a T : undefined behaviour, and an out-of-bounds address
+        // whenever T places its vtable pointer before the Node<T>
+        // subobject. The downcast happens only where a link is known to
+        // designate a real node : iterator dereference, front() and back().
+        Node<T>* prev = nullptr;
+        Node<T>* next = nullptr;
     };
 
     template<typename T>
