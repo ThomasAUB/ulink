@@ -100,7 +100,7 @@ namespace ulink {
         using reference = value_type&;
         using const_reference = const value_type&;
 
-        List();
+        constexpr List();
 
         List(const List<node_t>& other) = delete;
         List& operator=(const List<node_t>& other) = delete;
@@ -156,7 +156,7 @@ namespace ulink {
     };
 
     template<typename node_t>
-    List<node_t>::List() {
+    constexpr List<node_t>::List() {
         mStartNode.next = &mEndNode;
         mEndNode.prev = &mStartNode;
     }
